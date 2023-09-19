@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import httpStatus from "http-status";
 import ApiError from "../../../includes/library/api.error.library";
-import { IActionFilter, IController, IPaginationOptions } from "../../../types";
+import { IPermissionFilter, IController, IPaginationOptions } from "../../../types";
 import PerimissionService from "../../services/modules/permission.service";
 import moduleService from "../../services/modules/module.service";
 import _ from "lodash"
@@ -22,7 +22,7 @@ class ActionsController implements IController {
             throw new ApiError(httpStatus.BAD_REQUEST, global.polyglot.t("MODULE_ERROR_DISABLED"));
 
 
-        const filter: IActionFilter = _.pick(req.query, ["name", "slug", "guard", "enabled"]) as IActionFilter;
+        const filter: IPermissionFilter = _.pick(req.query, ["name", "slug", "guard", "enabled"]) as IPermissionFilter;
         const options: IPaginationOptions = {
             search: req.query.search,
             sortBy: req.query.sortBy,

@@ -1,5 +1,4 @@
-import { ObjectId, Document, Model } from 'mongoose';
-import {Request, Response} from "express"
+import { Request, Response } from "express";
 
 declare namespace NodeJS {
 	interface Global {
@@ -13,14 +12,6 @@ export interface IPaginationResponse {
 	limit: number,
 	totalPages: number,
 	totalResults: number
-}
-
-export interface IPaginationOptions {
-	sortBy?: string;
-	limit: number;
-	page: number;
-	populate?: string;
-	search?: string;
 }
 
 export interface IColumnSearch {
@@ -37,41 +28,13 @@ export interface Img {
 }
 
 export interface IUser {
-	id?: string;
+	id?: number;
 	name?: string;
 	surname?: string;
 	username?: string;
-	picture?: Img;
+	picture?: string;
 	email?: string;
 	password?: string;
-	role?: string;
-	isEmailVerified?: boolean;
-	enabled?: boolean;
-}
-
-export interface IUserDocument extends Document {
-	name: string;
-	surname?: string;
-	username: string;
-	picture?: Img;
-	email: string;
-	password: string;
-	role: string;
-	isEmailVerified: boolean;
-	enabled: boolean;
-}
-
-// Definición de la interfaz para el modelo de usuario
-export interface IUserModel extends Model<IUser> {
-	static isEmailTaken(email: string): Promise<boolean>;
-	static isUsernameTaken(username: string): Promise<boolean>;
-}
-
-export interface IUserFilter {
-	name?: string;
-	surname?: string;
-	username?: string;
-	email?: string;
 	role?: string;
 	isEmailVerified?: boolean;
 	enabled?: boolean;
@@ -90,19 +53,11 @@ export interface IToken {
 	blacklisted: boolean;
 }
 
-export interface ITokenDocument extends Document {
-	token: string | undefined;
-	user: string;
-	type: string;
-	expires: any;
-	blacklisted: boolean;
-}
-
 export interface ITokenFilter {
 	token?: string;
-	user?: ObjectId;
-	type?: string,
-	blacklisted?: boolean
+	user?: number; // Cambiado a number
+	type?: string;
+	blacklisted?: boolean;
 }
 
 export interface ITokenExpiresToken {
@@ -116,12 +71,12 @@ export interface IAccessToken {
 }
 
 export interface IModule {
-	id?:string;
+	id?: number;
 	name?: string;
 	slug?: string;
 	guard?: string;
 	description?: string;
-	actions?: IAction[];
+	actions?: IPermission[];
 }
 
 export interface IModuleFilter {
@@ -131,13 +86,8 @@ export interface IModuleFilter {
 	description?: string;
 }
 
-export interface IModuleModel extends Model<IModule> {
-	static isNameTaken(name: string): Promise<boolean>;
-	static isSlugTaken(slug: string): Promise<boolean>;
-}
-
-export interface IAction {
-	id?:srting;
+export interface IPermission {
+	id?: number;
 	name?: string;
 	slug?: string;
 	guard?: string;
@@ -145,53 +95,43 @@ export interface IAction {
 	module?: string;
 }
 
-export interface IActionFilter {
+export interface IPermissionFilter {
 	name?: string;
 	slug?: string;
 	guard?: string;
-	module: string;
+	module?: string;
 	enabled?: boolean;
 }
 
-export interface IActionDocument extends Document {
+export interface IRole {
+	id?: number;
 	name?: string;
 	slug?: string;
 	guard?: string;
 	description?: string;
-	module?: string;
-}
-
-export interface IActionModel extends Model<IAction> {
-	static isSlugTaken(slug: string): Promise<boolean>;
-}
-
-export interface IRole {
-	name: string;
-	slug: string;
-	guard: string;
-	description: string;
 }
 
 export interface IRoleFilter {
-	name: string;
-	slug: string;
-	guard: string;
+	name?: string;
+	slug?: string;
+	guard?: string;
 }
 
 export interface IBitacora {
-	user: ObjectId;
-	module: string;
-	action: string;
-	description: string;
-	date: Date;
+	id?: number;
+	user?: number; // Cambiado a number
+	module?: string;
+	action?: string;
+	description?: string;
+	date?: Date;
 }
 
 export interface IBitacoraFilter {
-	user: ObjectId;
-	module: string;
-	action: string;
-	startDate: Date;
-	endDate: Date;
+	user?: number; // Cambiado a number
+	module?: string;
+	action?: string;
+	startDate?: Date;
+	endDate?: Date;
 }
 
 export interface IController {
@@ -205,31 +145,34 @@ export interface IController {
 	bulk?(req: Request, res: Response): Promise<void>;
 }
 
-export interface ICrudService {
+export interface ICrudService<T> {
 	findPaginate?(filter: T, options: IPaginationOptions): Promise<IPaginationResponse>;
 	findAll?(): Promise<T[]>;
-	findById?(id: string): Promise<T | null>;
+	findById?(id: number): Promise<T | null>;
 	create?(data: T): Promise<T>;
-	update?(id: string, data: T): Promise<T | null>;
-	enabled?(id: string): Promise<boolean>;
-	disabled?(id: string): Promise<boolean>;
-	bulk?(data: T[]): Promise<boolean>;
+	update?(id: number, data: T): Promise<T | null>;
+	enabled?(id: number): Promise<boolean>;
+	disabled?(id: number): Promise<boolean>;
+	bulkCreate?(data: T[]): Promise<boolean>;
+	bulkDelete?(data: T[]): Promise<boolean>;
+	bulkEnabled?(data: T[]): Promise<boolean>;
+	bulkDisabled?(data: T[]): Promise<boolean>;
 }
 
 export interface ITokenPayload {
-	sub: string;
+	sub: number;
 	iat: number;
 	exp: number;
 	type: string;
 }
 
 export interface IAuthLogin {
-	email:string;
-	password:string;
+	email: string;
+	password: string;
 }
 
 export interface IAuthRefreshToken {
-	refreshToken:string;
+	refreshToken: string;
 }
 
 export interface IAuthToken {
@@ -247,17 +190,17 @@ export interface IFaker {
 }
 
 export interface ILanguage {
-	name?:string;
-	slug?:string;
-	description?:string;
-	default?:string;
-	enabled?:string	
+	id?: number;
+	name?: string;
+	slug?: string;
+	description?: string;
+	default?: boolean; // Cambiado a boolean
+	enabled?: boolean; // Cambiado a boolean
 }
 
 export interface ILanguageFilter {
-	name?:string;
-	slug?:string;
-	default?:string;
-	enabled?:string	
+	name?: string;
+	slug?: string;
+	default?: boolean; // Cambiado a boolean
+	enabled?: boolean; // Cambiado a boolean
 }
-

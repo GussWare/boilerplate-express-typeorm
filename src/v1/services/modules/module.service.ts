@@ -1,4 +1,5 @@
-import { ICrudService, IPaginationOptions, IModule, IModuleFilter } from "../../../types"
+import { ICrudService, IModule, IModuleFilter } from "../../../types"
+import DataSource from '../../../includes/config/data.source';
 import ModuleModel from "../../models/sistema/module.model"
 import * as constants from "../../../includes/config/constants"
 import PerimissionService from "./permission.service";
@@ -7,31 +8,47 @@ import ApiError from "../../../includes/library/api.error.library";
 import httpStatus from "http-status";
 import loggerHelper from "../../../includes/helpers/logger.helper";
 
-class ModuleService implements ICrudService {
+export default class ModuleService implements ICrudService {
+
+  private ModuleRepository = undefined;
+  private PerimissionService = undefined;
+
+  constructor() {
+    this.ModuleRepository = DataSource.getRepository(ModuleModel);
+    this.PerimissionService = new PerimissionService();
+  }
 
   //@ts-ignore
-  async findPaginate(filter: IModuleFilter, options: IPaginationOptions): Promise<IPaginationResponse> {
+  async findPaginate(_filter: IModuleFilter, _options: IPaginationOptions): Promise<IPaginationResponse> {
+    /*
     //@ts-ignore
     const data: IPaginationResponse = await ModuleModel.paginate(filter, options);
     return data;
+    */
   }
 
   async findAll(): Promise<IModule[]> {
-    const data = await ModuleModel.find();
+    const data = await this.ModuleRepository.find();
     return data;
   }
 
-  async findById(id: string): Promise<IModule | null> {
-    const resource = await ModuleModel.findOne({
-      _id: id, enabled: true
+  async findById(id: number): Promise<IModule | null> {
+    const resource = await this.ModuleRepository.findOne({
+      where: {
+        id: id,
+        enabled: true
+      }
     });
 
     return resource;
   }
 
   async findBySlug(slug: string): Promise<IModule | null> {
-    const resource = await ModuleModel.findOne({
-      slug: slug, enabled: true
+    const resource = await this.ModuleRepository.findOne({
+      where: {
+        slug: slug,
+        enabled: true
+      }
     });
 
     return resource;
@@ -50,18 +67,17 @@ class ModuleService implements ICrudService {
       throw new ApiError(httpStatus.BAD_REQUEST, global.polyglot.t("MODULE_ERROR_MODULE_SLUG_ALREADY_TAKEN"));
     }
 
-    let resource = await ModuleModel.create(data);
+    let resource = await this.ModuleRepository.create(data);
 
     if (resource && data.actions) {
-      loggerHelper.debug("entra aqui ");
       //@ts-ignore
-      await PerimissionService.bulkSave(resource.id, data.actions);
+      await this.PerimissionService.bulkCreate(resource.id, data.actions);
     }
 
     return resource;
   }
 
-  async update(id: string, data: IModule): Promise<IModule | null> {
+  async update(id: number, data: IModule): Promise<IModule | null> {
     const ModuleDB = await this.findById(id);
 
     if (!ModuleDB) {
@@ -86,13 +102,13 @@ class ModuleService implements ICrudService {
     const resource = await this.findById(id);
 
     if (resource && data.actions) {
-      await PerimissionService.bulkSave(id, data.actions);
+      await this.PerimissionService.bulkCreate(id, data.actions);
     }
 
     return resource;
   }
 
-  async delete(id: string): Promise<boolean> {
+  async delete(id: number): Promise<boolean> {
     const resource = await this.findById(id);
 
     if (!resource) {
@@ -100,12 +116,12 @@ class ModuleService implements ICrudService {
       throw new ApiError(httpStatus.BAD_REQUEST, global.polyglot.t("USERS_NOT_FOUND"));
     }
 
-    await ModuleModel.deleteOne({ _id: id });
+    await this.ModuleRepository.delete({ id: id });
 
     return true;
   }
 
-  async enabled(id: string): Promise<boolean> {
+  async enabled(id: number): Promise<boolean> {
     const resource = await this.findById(id);
 
     if (!resource) {
@@ -113,12 +129,12 @@ class ModuleService implements ICrudService {
       throw new ApiError(httpStatus.BAD_REQUEST, global.polyglot.t("USERS_NOT_FOUND"));
     }
 
-    await ModuleModel.updateOne({ _id: id }, { enabled: constants.SI });
+    await this.ModuleRepository.update(id, { enabled: constants.SI });
 
     return true;
   }
 
-  async disabled(id: string): Promise<boolean> {
+  async disabled(id: number): Promise<boolean> {
     const resource = await this.findById(id);
 
     if (!resource) {
@@ -126,20 +142,18 @@ class ModuleService implements ICrudService {
       throw new ApiError(httpStatus.BAD_REQUEST, global.polyglot.t("USERS_NOT_FOUND"));
     }
 
-    await ModuleModel.updateOne({ _id: id }, { enabled: constants.NO });
+    await this.ModuleRepository.update(id, { enabled: constants.NO });
 
     return true;
   }
 
-  async bulk(data: IModule[]): Promise<boolean> {
+  async bulkCreate(data: IModule[]): Promise<boolean> {
     const dataChunk = _.chunk(data, 1000);
 
     for (const key in dataChunk) {
-      await ModuleModel.insertMany(dataChunk[key]);
+      await this.ModuleRepository.insert(dataChunk[key]);
     }
 
     return true;
   }
 }
-
-export default new ModuleService();

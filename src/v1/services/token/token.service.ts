@@ -1,5 +1,6 @@
+import DataSource from '../../../includes/config/data.source';
 import { IAccessToken, IToken, ITokenPayload, IUser } from "../../../types";
-import TokenModel from "../../models/sistema/token.model";
+import { TokenModel } from "../../models/sistema/token.model";
 import config from "../../../includes/config/config";
 import * as constants from "../../../includes/config/constants";
 import ApiError from "../../../includes/library/api.error.library";
@@ -7,22 +8,56 @@ import _ from "lodash";
 import moment from "moment";
 import jwt from "jsonwebtoken";
 import HttpStatus from "http-status";
-import userService from "../users/user.service";
+import UserService from "../users/user.service";
 
-class TokenService {
+export default class TokenService {
+
+    private TokenRepository = undefined;
+    private UserService = undefined;
+
+    constructor() {
+        this.TokenRepository = DataSource.getRepository(TokenModel);
+        this.UserService = new UserService();
+    }
 
     async create(data: IToken): Promise<IToken> {
-        const token = await TokenModel.create(data);
+        const token = await this.TokenRepository.create(data);
         return token;
+    }
+
+    async findByToken(token: string, type: string = null, blacklist: boolean = false) {
+        const where = {
+            token: token,
+            blacklist: blacklist
+        };
+
+        if (type) {
+            where['type'] = type;
+        }
+
+        const result = await this.TokenRepository.findOne({
+            where: where
+        });
+
+        return result;
+    }
+
+    async deleteByUserAndType(userId: number, type: string) {
+        await this.TokenRepository.delete({
+            user_id: userId,
+            type: type
+        });
     }
 
     async verify(token: string, type: string) {
         const payload = jwt.verify(token, config.jwt.secret);
-        const tokenDoc = await TokenModel.findOne({
-            token: token,
-            type: type,
-            user: payload.sub,
-            blacklisted: false
+        const tokenDoc = await this.TokenRepository.findOne({
+            where: {
+                token: token,
+                type: type,
+                user: payload.sub,
+                blacklisted: false
+            }
         });
 
         if (!tokenDoc) {
@@ -32,7 +67,7 @@ class TokenService {
         return tokenDoc;
     }
 
-    async generateToken(userId: string, expires: any, type: string): Promise<string> {
+    async generateToken(userId: number, expires: any, type: string): Promise<string> {
         const secret = config.jwt.secret;
 
         const payload: ITokenPayload = {
@@ -84,7 +119,7 @@ class TokenService {
 
 
     async generateTokenResetPassword(email: string): Promise<string> {
-        const user = await userService.findByEmail(email);
+        const user = await this.UserService.findByEmail(email);
 
         if (!user || !user.id) {
             throw new ApiError(HttpStatus.NOT_FOUND, "No users found with this email");
@@ -128,5 +163,3 @@ class TokenService {
     }
 
 }
-
-export default new TokenService();

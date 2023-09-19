@@ -12,7 +12,12 @@ const envVarsSchema = Joi.object()
       .valid('production', 'development', 'test')
       .required(),
     PORT: Joi.number().default(3000),
-    MONGO_URI: Joi.string().required().description('Mongo DB url'),
+
+    DATABASE_TYPE: Joi.string().required().description('Database Type'),
+    DATABASE_HOST: Joi.string().required().description('Database Host'),
+    DATABASE_USER: Joi.string().required().description('Database USER'),
+    DATABASE_PASS: Joi.string().required().description('Database PASS'),
+    DATABASE_PORT: Joi.string().required().description('Database PORT'),
 
     URL_WEB: Joi.string().required().description('Url web'),
     URL_API: Joi.string().required().description('Url api'),
@@ -43,7 +48,7 @@ const envVarsSchema = Joi.object()
 const { value: envVars } = envVarsSchema
   .prefs({ errors: { label: 'key' } })
   .validate(process.env)
-  
+
 export default {
   env: envVars.NODE_ENV,
   port: envVars.PORT,
@@ -53,20 +58,20 @@ export default {
     api: envVars.URL_API
   },
   base_url: envVars.BASE_URL,
-  mongoose: {
-    uri:envVars.MONGO_URI,
-    options: {
-      useCreateIndex: true,
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    }
+  database: {
+    type: envVars.DATABASE_TYPE,
+    host: envVars.DATABASE_HOST,
+    user: envVars.DATABASE_USER,
+    pass: envVars.DATABASE_PASS,
+    port: envVars.DATABASE_PORT,
+
   },
   jwt: {
     secret: envVars.JWT_SECRET,
     accessExpirationMinutes: envVars.JWT_ACCESS_EXPIRATION_MINUTES,
     refreshExpirationDays: envVars.JWT_REFRESH_EXPIRATION_DAYS,
     resetPasswordExpirationMinutes:
-            envVars.JWT_RESET_PASSWORD_EXPIRATION_MINUTES,
+      envVars.JWT_RESET_PASSWORD_EXPIRATION_MINUTES,
     verifyEmailExpirationMinutes: envVars.JWT_VERIFY_EMAIL_EXPIRATION_MINUTES
   },
   email: {
@@ -84,7 +89,7 @@ export default {
     accountSid: envVars.TWILIO_ACCOUNT_SID,
     authToken: envVars.TWILIO_AUTH_TOKEN
   },
-  language : {
+  language: {
     default: envVars.DEFAULT_LANGUAGE
   }
 }

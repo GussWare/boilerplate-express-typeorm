@@ -1,15 +1,22 @@
-import userService from "./user.service"
-import tokenService from "../token/token.service";
+import UserService from "./user.service"
+import TokenService from "../token/token.service";
 import httpStatus from "http-status";
-import TokenModel from "../../models/sistema/token.model";
 import ApiError from "../../../includes/library/api.error.library";
 import * as constants from "../../../includes/config/constants";
-import { IAccessToken, IUser, IUserDocument } from "../../../types";
+import { IAccessToken, IUser } from "../../../types";
 
-class AuthService {
+export default class AuthService {
 
-    async login(email: string, password: string): Promise<IUserDocument> {
-        const user = await userService.findByEmail(email);
+    private TokenService = undefined;
+    private UserService = undefined;
+
+    constructor() {
+        this.TokenService = new TokenService();
+        this.UserService = new UserService();
+    }
+
+    async login(email: string, password: string): Promise<IUser> {
+        const user = await this.UserService.findByEmail(email);
 
         if (!user || !user.enabled) {
             //@ts-ignore
@@ -28,11 +35,7 @@ class AuthService {
     }
 
     async logout(refreshToken: string): Promise<boolean> {
-        const refreshTokenDoc = await TokenModel.findOne({
-            token: refreshToken,
-            type: constants.TOKEN_TYPE_REFRESH,
-            blacklisted: false,
-        });
+        const refreshTokenDoc = await this.TokenService.findByToken(refreshToken, constants.TOKEN_TYPE_REFRESH);
 
         if (!refreshTokenDoc) {
             //@ts-ignore
@@ -46,8 +49,8 @@ class AuthService {
 
     async refreshAuth(refreshToken: string): Promise<IAccessToken> {
         //@ts-ignore
-        const refreshTokenDoc = await tokenService.verify(refreshToken, constants.TOKEN_TYPE_REFRESH);
-        const user = await userService.findById(refreshTokenDoc.user);
+        const refreshTokenDoc = await this.TokenService.verify(refreshToken, constants.TOKEN_TYPE_REFRESH);
+        const user = await this.UserService.findById(refreshTokenDoc.user);
 
         if (!user || !user.enabled) {
             //@ts-ignore
@@ -56,17 +59,17 @@ class AuthService {
 
         await refreshTokenDoc.remove();
 
-        const tokens = await tokenService.generateTokenAuthentication(user);
+        const tokens = await this.TokenService.generateTokenAuthentication(user);
 
         return tokens;
     }
 
-    async resetPassword(resetPassword: any , newPassword: string): Promise<boolean> {
-        if(! resetPassword) 
+    async resetPassword(resetPassword: any, newPassword: string): Promise<boolean> {
+        if (!resetPassword)
             return false;
 
-        const resetPasswordTokenDB = await tokenService.verify(resetPassword, constants.TOKEN_TYPE_RESET_PASSWORD);
-        const user = await userService.findById(resetPasswordTokenDB.user);
+        const resetPasswordTokenDB = await this.TokenService.verify(resetPassword, constants.TOKEN_TYPE_RESET_PASSWORD);
+        const user = await this.UserService.findById(resetPasswordTokenDB.user);
 
         if (!user || !user.enabled) {
             //@ts-ignore
@@ -75,39 +78,31 @@ class AuthService {
 
         const data = { password: newPassword };
 
-        await userService.update(user.id, data);
+        await this.UserService.update(user.id, data);
 
-        await TokenModel.deleteMany({
-            user: user.id,
-            type: constants.TOKEN_TYPE_RESET_PASSWORD
-        });
+        await this.TokenService.deleteByUserAndType(user.id, constants.TOKEN_TYPE_RESET_PASSWORD);
 
         return true;
     }
 
     async verifyEmail(tokenVerifyEmail: any): Promise<boolean> {
-        const verifyEmailDoc = await tokenService.verify(tokenVerifyEmail, constants.TOKEN_TYPE_VERIFY_EMAIL);
+        const verifyEmailDoc = await this.TokenService.verify(tokenVerifyEmail, constants.TOKEN_TYPE_VERIFY_EMAIL);
 
-        const user = await userService.findById(verifyEmailDoc.user);
+        const user = await this.UserService.findById(verifyEmailDoc.user);
 
         if (!user || user.enabled) {
             //@ts-ignore
             throw new ApiError(httpStatus.UNAUTHORIZED, global.polyglot.t("AUTH_ERROR_PLEASE_AUTHENTICATE"));
         }
 
-        await TokenModel.deleteMany({
-            user: user.id,
-            type: constants.TOKEN_TYPE_VERIFY_EMAIL
-        });
+        await this.TokenService.deleteByUserAndType(user.id, constants.TOKEN_TYPE_VERIFY_EMAIL);
 
         const data: IUser = {
             isEmailVerified: true
         }
 
-        await userService.update(user.id, data);
+        await this.UserService.update(user.id, data);
 
         return true;
     }
 }
-
-export default new AuthService();

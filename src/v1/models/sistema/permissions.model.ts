@@ -2,14 +2,12 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     Column,
-    ManyToOne,
     CreateDateColumn,
     UpdateDateColumn
 } from 'typeorm';
-import { ModuleModel } from './module.model';
 
 @Entity('permissions')
-export class PermissionModel {
+export default class PermissionModel {
 
     @PrimaryGeneratedColumn()
     id: number;

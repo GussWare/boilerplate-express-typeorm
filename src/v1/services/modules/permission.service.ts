@@ -1,33 +1,48 @@
-import { IAction, IPaginationOptions, IPaginationResponse } from "../../../types";
-import Permission from "../../models/sistema/permissions.model";
+import { IPermission, IPaginationOptions, IPaginationResponse } from "../../../types";
+import PermissionModel from "../../models/sistema/permissions.model";
+import DataSource from '../../../includes/config/data.source';
 import _ from "lodash";
 
-class PerimissionService {
+export default class PerimissionService {
 
-    async findPaginate(filter: IAction, options: IPaginationOptions): Promise<IPaginationResponse> {
+    private PermissionRepository = undefined;
+
+    constructor() {
+        this.PermissionRepository = DataSource.getRepository(PermissionModel);
+    }
+
+    async findPaginate(_filter: IPermission, _options: IPaginationOptions): Promise<IPaginationResponse> {
+        /*
         //@ts-ignore
         const data: IPaginationResponse = await UserModel.paginate(filter, options);
         return data;
+        */
     }
 
-    async findAll(moduleId: string): Promise<IAction[]> {
-        const data = await PermissionModel.find({
-            module: moduleId
+    async findAll(moduleid: number): Promise<IPermission[]> {
+        const data = await this.PermissionRepository.find({
+            where: {
+                module: moduleId
+            }
         });
 
         return data;
     }
 
-    async findById(moduleId: string, id: string): Promise<IAction | null> {
-        const resource = await PermissionModel.findOne({
-            module: moduleId,
-            _id: id,
+    async findById(moduleId: number, id: number): Promise<IPermission | null> {
+        const resource = await this.PermissionRepository.findOne({
+            where: {
+                id: id,
+                module: moduleId
+            }
         });
 
         return resource;
     }
 
-    async bulkCreate(moduleId: string, data: IAction[]): Promise<boolean> {
+    async bulkCreate(moduleid: number, data: IPermission[]): Promise<boolean> {
+
+        /*
         const dataBulk = _.map(data, (value) => {
             value.module = moduleId;
             return value;
@@ -39,7 +54,7 @@ class PerimissionService {
         const dataCreateChunk = _.chunk(dataCreate, 1000);
 
         for (const key in dataCreateChunk) {
-            await PermissionModel.insertMany(dataCreateChunk[key]);
+            await this.PermissionRepository.insert(dataCreateChunk[key]);
         }
 
         for (const iterator of dataUpdate) {
@@ -47,8 +62,6 @@ class PerimissionService {
         }
 
         return true;
+        */
     }
 }
-
-
-export default new PerimissionService();

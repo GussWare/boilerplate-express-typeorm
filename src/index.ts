@@ -1,21 +1,13 @@
 import 'reflect-metadata';
-import { DataSource } from 'typeorm';
+import AppDataSource from "./includes/config/data.source";
 import app from './app';  // Importamos la configuración de Express desde app.ts
 import config from './includes/config/config';
 import loggerHelper from './includes/helpers/logger.helper';
 
-// Configuración de DataSource para PostgreSQL
-const AppDataSource = new DataSource({
-  type: "postgres",
-  host: "localhost",
-  port: 5432,
-  username: "postgres",
-  password: "123qweAA",
-  database: "test",
-  entities: [
-    "src/v1/entity/**/*.ts"
-  ],
-});
+const unexpectedErrorHandler = (error: any): void => {
+  loggerHelper.error(error);
+  process.exit(1);
+};
 
 // Inicializar DataSource y luego iniciar el servidor Express
 AppDataSource.initialize()
@@ -38,10 +30,5 @@ AppDataSource.initialize()
   }).catch(error => {
     loggerHelper.error('TypeORM connection error:', error);
   });
-
-const unexpectedErrorHandler = (error: any): void => {
-  loggerHelper.error(error);
-  process.exit(1);
-};
 
 export default app;

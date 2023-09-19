@@ -1,185 +1,58 @@
-import mongoose, {Model} from "mongoose";
-import validator from "validator";
-import bcrypt from "bcryptjs"
-import { IPaginationOptions, Img, IUser, IUserFilter, IColumnSearch, IPaginationResponse, IUserModel, IUserDocument } from "../../../types";
-// import * as paginationHelper from "../helpers/pagination.helper";
-import ToJsonPlugin from "../plugins/tojson.plugin";
-import paginationHelper from "../../../includes/helpers/pagination.helper";
+import {
+    Entity,
+    PrimaryGeneratedColumn,
+    Column,
+    CreateDateColumn,
+    UpdateDateColumn,
+    BeforeInsert,
+    BeforeUpdate
+} from "typeorm";
+import bcrypt from "bcryptjs";
 
-const imgSchema = new mongoose.Schema<Img>({
-    name: {
-        type: String,
-        required: true,
-        default: "no-img.png"
-    },
-    imgUrl: {
-        type: String,
-        required: true,
-        default: "no-img.png"
-    },
-    thumbnailUrl: {
-        type: String,
-        required: false,
-        default: "no-img.png"
-    },
-});
+@Entity("users")
+export class UserModel {
 
-const userSchema = new mongoose.Schema<IUser>(
-    {
-        name: {
-            type: String,
-            required: true,
-        },
-        surname: {
-            type: String,
-            required: false,
-        },
-        username: {
-            type: String,
-            required: true,
-            trim: true,
-        },
-        picture: imgSchema,
-        email: {
-            type: String,
-            required: true,
-            unique: true,
-            trim: true,
-            lowercase: true,
-            validate(value: string) {
-                if (!validator.isEmail(value)) {
-                    throw new Error("Invalid email");
-                }
-            },
-        },
-        password: {
-            type: String,
-            required: true,
-            trim: true,
-            minlength: 8,
-            private: true, // used by the toJSON plugin
-        },
-        role: {
-            type: String,
-            default: "user",
-        },
-        isEmailVerified: {
-            type: Boolean,
-            default: false,
-        },
-        enabled: {
-            type: Boolean,
-            default: true,
-        }
-    },
-    {
-        timestamps: true,
-    }
-);
+    @PrimaryGeneratedColumn()
+    id: number;
 
-userSchema.plugin(new ToJsonPlugin().apply);
+    @Column({ type: "varchar", length: 255 })
+    name: string;
 
-userSchema.statics.paginate = async function (filter: IUserFilter, options: IPaginationOptions) {
-    const {
-        sortBy = 'createdAt',
-        limit = 10,
-        page = 1,
-        populate,
-        search,
-    } = options;
+    @Column({ type: "varchar", length: 255, nullable: true })
+    surname: string;
 
-    const advancedFilter = [];
-    let searchFilter: Promise<IColumnSearch[]>;
+    @Column({ type: "varchar", length: 255, unique: true })
+    username: string;
 
-    // Se realiza una validación previa para determinar si la propiedad existe en el objeto filter
-    if ('username' in filter) {
-        advancedFilter.push({ username: filter.username });
-    }
+    @Column({ type: "varchar", length: 255, nullable: true })
+    picture: string;
 
-    if ('email' in filter) {
-        advancedFilter.push({ email: filter.email });
-    }
+    @Column({ type: "varchar", length: 255, unique: true })
+    email: string;
 
-    if('enabled' in filter) {
-        advancedFilter.push({ enabled: filter.enabled });
-    }
+    @Column({ type: "varchar", length: 255 })
+    password: string;
 
-    if('enabled' in filter) {
-        advancedFilter.push({ enabled: filter.enabled });
-    }
+    @Column({ type: "varchar", default: "user", length: 255 })
+    role: string;
 
-    const filterFind: any = advancedFilter.length > 0 ? { $and: advancedFilter } : {};
+    @Column({ type: "boolean", default: false })
+    isEmailVerified: boolean;
 
-    // Si se especifica una búsqueda, se hace uso del helper de búsqueda
-    if (search) {
-        const columns = ['name', 'surname', 'username', 'email'];
-        searchFilter = paginationHelper.search(search, columns);
+    @Column({ type: "boolean", default: true })
+    enabled: boolean;
 
-        if ((await searchFilter).length > 0) {
-            filterFind.$or = searchFilter;
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
+
+    @BeforeInsert()
+    @BeforeUpdate()
+    async hashPassword() {
+        if (this.password) {
+            this.password = await bcrypt.hash(this.password, 8);
         }
     }
-
-    // Se utiliza Promise.all para ejecutar ambas promesas en paralelo
-    const countPromise = this.countDocuments(filterFind).exec();
-    let docsPromise = this.find(filterFind)
-        .sort(paginationHelper.sortBy(sortBy))
-        .skip(paginationHelper.skip(page, limit))
-        .limit(limit);
-
-    if (populate) {
-        populate.split(",").forEach((populateOption: any) => {
-            docsPromise = docsPromise.populate(
-                populateOption
-                    .split(".")
-                    .reverse()
-                    .reduce((a: any, b: any) => ({ path: b, populate: a }))
-            );
-        });
-    }
-
-    docsPromise = docsPromise.exec();
-
-    return Promise.all([countPromise, docsPromise]).then((values) => {
-        const [totalResults, results] = values;
-        const totalPages = Math.ceil(totalResults / limit);
-        const result: IPaginationResponse = {
-            results,
-            page,
-            limit,
-            totalPages,
-            totalResults,
-        };
-
-        return Promise.resolve(result);
-    });
-};
-
-userSchema.statics.isEmailTaken = async function (email: string, excludeUserId?: mongoose.Types.ObjectId) {
-    const user = await this.findOne({ email, _id: { $ne: excludeUserId } });
-    return !!user;
-};
-
-userSchema.statics.isUserNameTaken = async function (username: string, excludeUserId?: mongoose.Types.ObjectId) {
-    const user = await this.findOne({ username, _id: { $ne: excludeUserId } });
-    return !!user;
-};
-
-userSchema.methods.isPasswordMatch = async function (password: string) {
-    const user = this;
-    //@ts-ignore
-    return bcrypt.compare(password, user.password);
-};
-
-userSchema.pre("save", async function (next) {
-    const user = this;
-    if (user.isModified("password")) {
-        //@ts-ignore
-        user.password = await bcrypt.hash(user.password, 8);
-    }
-    next();
-});
-
-const UserModel: Model<IUser, IUserModel, IUserDocument> = mongoose.model("User", userSchema);
-
-export default UserModel;
+}

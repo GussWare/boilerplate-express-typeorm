@@ -1,19 +1,23 @@
-import { IPaginationOptions, IBitacora, IBitacoraFilter} from "../../../types"
-import BitacoraModel from "../../models/sistema/bitacora.model"
+import { IPaginationOptions, IBitacora, IBitacoraFilter } from "../../../types"
+import { BitacoraModel } from "../../models/sistema/bitacora.model"
+import DataSource from '../../../includes/config/data.source';
 import _ from "lodash"
 
 class BitacoraService {
+  private bitacoraRepository = undefined;
 
-    //@ts-ignore
+  constructor() {
+    this.bitacoraRepository = DataSource.getRepository(BitacoraModel);
+  }
+
+  //@ts-ignore
   async findPaginate(filter: IBitacoraFilter, options: IPaginationOptions): Promise<IPaginationResponse> {
-    //@ts-ignore
-    const resource: IPaginationResponse = await BitacoraModel.paginate(filter, options);
-    return resource;
+
   }
 
 
   async create(data: IBitacora): Promise<IBitacora> {
-    let resource = await BitacoraModel.create(data);
+    const resource = await this.bitacoraRepository.create(data);
 
     return resource;
   }
