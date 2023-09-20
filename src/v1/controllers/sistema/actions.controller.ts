@@ -1,21 +1,28 @@
 import { Request, Response } from "express";
 import httpStatus from "http-status";
 import ApiError from "../../../includes/library/api.error.library";
-import { IPermissionFilter, IController, IPaginationOptions } from "../../../types";
-import PerimissionService from "../../services/modules/permission.service";
-import moduleService from "../../services/modules/module.service";
+import { IPermissionFilter, IController } from "../../../types";
+import PermissionService from "../../services/modules/permission.service";
+import ModuleService from "../../services/modules/module.service";
 import _ from "lodash"
 
-class ActionsController implements IController {
+class PermisionController implements IController {
+    private ModuleService = undefined;
+    private PermissionService = undefined;
+
+    constructor() {
+        this.ModuleService = new ModuleService();
+        this.PermissionService = new PermissionService();
+    }
 
     async findPaginate(req: Request, res: Response): Promise<void> {
-        const moduleId = req.params.moduleId;
+        const id = req.params.moduleId;
 
-        if (!moduleId)
+        if (!id)
             //@ts-ignore
             throw new ApiError(httpStatus.BAD_REQUEST, global.polyglot.t("ACTIONS_ERROR_MODULE_ID_REQUIRED"));
 
-        const module_data = moduleService.findById(moduleId);
+        const module_data = await this.ModuleService.findById(id);
 
         if (!module_data)
             //@ts-ignore
@@ -32,21 +39,17 @@ class ActionsController implements IController {
             page: parseInt(req.query.page)
         } as IPaginationOptions
 
-        const data = await PerimissionService.findPaginate(filter, options);
+        const data = await this.PermissionService.findPaginate(filter, options);
 
         res.status(httpStatus.OK).json(data);
     }
-
 
     async findAll(req: Request, res: Response): Promise<void> {
         const moduleId = req.params.moduleId;
-        const data = await PerimissionService.findAll(moduleId);
+        const data = await this.PermissionService.findAll(moduleId);
 
         res.status(httpStatus.OK).json(data);
     }
-
-
 }
 
-
-export default new ActionsController();
+export default new PermisionController();

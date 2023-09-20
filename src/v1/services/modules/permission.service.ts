@@ -1,9 +1,9 @@
-import { IPermission, IPaginationOptions, IPaginationResponse } from "../../../types";
+import { IPermission } from "../../../types";
 import PermissionModel from "../../models/sistema/permissions.model";
 import DataSource from '../../../includes/config/data.source';
 import _ from "lodash";
 
-export default class PerimissionService {
+export default class PermissionService {
 
     private PermissionRepository = undefined;
 
@@ -11,7 +11,7 @@ export default class PerimissionService {
         this.PermissionRepository = DataSource.getRepository(PermissionModel);
     }
 
-    async findPaginate(_filter: IPermission, _options: IPaginationOptions): Promise<IPaginationResponse> {
+    async findPaginate(_filter: IPermission, _options: any): Promise<void> {
         /*
         //@ts-ignore
         const data: IPaginationResponse = await UserModel.paginate(filter, options);
@@ -19,28 +19,28 @@ export default class PerimissionService {
         */
     }
 
-    async findAll(moduleid: number): Promise<IPermission[]> {
+    async findAll(module: number): Promise<IPermission[]> {
         const data = await this.PermissionRepository.find({
             where: {
-                module: moduleId
+                module: module
             }
         });
 
         return data;
     }
 
-    async findById(moduleId: number, id: number): Promise<IPermission | null> {
+    async findById(module: number, id: number): Promise<IPermission | null> {
         const resource = await this.PermissionRepository.findOne({
             where: {
                 id: id,
-                module: moduleId
+                module: module
             }
         });
 
         return resource;
     }
 
-    async bulkCreate(moduleid: number, data: IPermission[]): Promise<boolean> {
+    async bulkCreate(_moduleid: number, _data: IPermission[]): Promise<boolean> {
 
         /*
         const dataBulk = _.map(data, (value) => {
@@ -63,5 +63,7 @@ export default class PerimissionService {
 
         return true;
         */
+
+        return true;
     }
 }

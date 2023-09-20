@@ -2,20 +2,18 @@ import { ICrudService, IModule, IModuleFilter } from "../../../types"
 import DataSource from '../../../includes/config/data.source';
 import ModuleModel from "../../models/sistema/module.model"
 import * as constants from "../../../includes/config/constants"
-import PerimissionService from "./permission.service";
+import PermissionService from "./permission.service";
 import _ from "lodash"
 import ApiError from "../../../includes/library/api.error.library";
 import httpStatus from "http-status";
-import loggerHelper from "../../../includes/helpers/logger.helper";
 
-export default class ModuleService implements ICrudService {
-
+export default class ModuleService implements ICrudService<IModule> {
   private ModuleRepository = undefined;
-  private PerimissionService = undefined;
+  private PermissionService = undefined;
 
   constructor() {
     this.ModuleRepository = DataSource.getRepository(ModuleModel);
-    this.PerimissionService = new PerimissionService();
+    this.PermissionService = new PermissionService();
   }
 
   //@ts-ignore
@@ -71,7 +69,7 @@ export default class ModuleService implements ICrudService {
 
     if (resource && data.actions) {
       //@ts-ignore
-      await this.PerimissionService.bulkCreate(resource.id, data.actions);
+      await this.PermissionService.bulkCreate(resource.id, data.actions);
     }
 
     return resource;
@@ -92,7 +90,7 @@ export default class ModuleService implements ICrudService {
     }
 
     const dataUpdate = _.extend(ModuleDB, data);
-    const result = await ModuleModel.updateOne({ _id: id }, dataUpdate);
+    const result = await this.ModuleRepository.update(id, dataUpdate);
 
     if (!result.ok) {
       //@ts-ignore
@@ -102,7 +100,7 @@ export default class ModuleService implements ICrudService {
     const resource = await this.findById(id);
 
     if (resource && data.actions) {
-      await this.PerimissionService.bulkCreate(id, data.actions);
+      await this.PermissionService.bulkCreate(id, data.actions);
     }
 
     return resource;
