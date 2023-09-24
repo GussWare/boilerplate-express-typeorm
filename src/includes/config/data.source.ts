@@ -12,9 +12,9 @@ export const AppDataSource = new DataSource({
     ...database,
     synchronize: false,
     logging: false,
-    entities: ['src/entities/**/*.entity{.ts,.js}'],
-    migrations: ['src/migrations/**/*{.ts,.js}'],
-    subscribers: ['src/subscribers/**/*{.ts,.js}'],
+    entities: ['src/v1/db/entities/**/*.entity{.ts,.js}'],
+    migrations: ['src/v1/db/migrations/**/*{.ts,.js}'],
+    subscribers: ['src/v1/db/subscribers/**/*{.ts,.js}'],
 });
 
 export default AppDataSource;

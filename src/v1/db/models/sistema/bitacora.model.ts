@@ -10,7 +10,7 @@ import {
 } from "typeorm";
 
 @Entity("users")
-export class BitacoraModel {
+export default class BitacoraModel {
 
     @PrimaryGeneratedColumn()
     id: number;

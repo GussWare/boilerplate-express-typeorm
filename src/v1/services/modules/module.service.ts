@@ -1,6 +1,6 @@
 import { ICrudService, IModule, IModuleFilter } from "../../../types"
 import DataSource from '../../../includes/config/data.source';
-import ModuleModel from "../../models/sistema/module.model"
+import ModuleModel from "../../db/models/sistema/module.model"
 import * as constants from "../../../includes/config/constants"
 import PermissionService from "./permission.service";
 import _ from "lodash"

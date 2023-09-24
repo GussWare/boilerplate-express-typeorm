@@ -1,5 +1,5 @@
 import { IPermission } from "../../../types";
-import PermissionModel from "../../models/sistema/permissions.model";
+import PermissionModel from "../../db/models/sistema/permissions.model";
 import DataSource from '../../../includes/config/data.source';
 import _ from "lodash";
 

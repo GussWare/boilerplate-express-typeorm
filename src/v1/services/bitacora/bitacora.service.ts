@@ -1,5 +1,5 @@
 import { IPaginationOptions, IBitacora, IBitacoraFilter } from "../../../types"
-import { BitacoraModel } from "../../models/sistema/bitacora.model"
+import BitacoraModel from "../../db/models/sistema/bitacora.model"
 import DataSource from '../../../includes/config/data.source';
 import _ from "lodash"
 

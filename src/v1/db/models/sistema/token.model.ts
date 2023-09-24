@@ -7,11 +7,11 @@ import {
     ManyToOne,
     JoinColumn
 } from "typeorm";
-import * as constants from "../../../includes/config/constants"
+import * as constants from "../../../../includes/config/constants"
 import UserModel from "./user.model";
 
 @Entity("tokens")
-export class TokenModel {
+export default class TokenModel {
 
     @PrimaryGeneratedColumn()
     id: number;

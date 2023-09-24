@@ -1,5 +1,5 @@
 import DataSource from '../../../includes/config/data.source';
-import UserModel from '../../models/sistema/user.model'; // Asegúrate de importar el modelo correcto
+import UserModel from '../../db/models/sistema/user.model'; // Asegúrate de importar el modelo correcto
 import { IUser } from "../../../types";
 import ApiError from "../../../includes/library/api.error.library";
 import httpStatus from "http-status";

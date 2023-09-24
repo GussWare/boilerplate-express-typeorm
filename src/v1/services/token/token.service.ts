@@ -1,6 +1,6 @@
 import DataSource from '../../../includes/config/data.source';
 import { IAccessToken, IToken, ITokenPayload, IUser } from "../../../types";
-import { TokenModel } from "../../models/sistema/token.model";
+import TokenModel from "../../db/models/sistema/token.model";
 import config from "../../../includes/config/config";
 import * as constants from "../../../includes/config/constants";
 import ApiError from "../../../includes/library/api.error.library";
