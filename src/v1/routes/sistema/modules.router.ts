@@ -1,6 +1,6 @@
 import express from 'express'
 import ModulesController from '../../controllers/sistema/modules.controller'
-import ActionsController from '../../controllers/sistema/actions.controller'
+import ActionsController from '../../controllers/sistema/permissions.controller'
 import catchAsyncHelper from '../../../includes/helpers/error.helper';
 
 import * as ModuleValidation from "../../validations/sistema/modules/modules.validation";

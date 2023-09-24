@@ -1,5 +1,5 @@
 import DataSource from '../../../includes/config/data.source';
-import { UserModel } from '../../models/sistema/user.model'; // Asegúrate de importar el modelo correcto
+import UserModel from '../../models/sistema/user.model'; // Asegúrate de importar el modelo correcto
 import { IUser } from "../../../types";
 import ApiError from "../../../includes/library/api.error.library";
 import httpStatus from "http-status";
@@ -81,26 +81,32 @@ export default class UserService {
   }
 
   async bulkCreate(data: IUser[]): Promise<boolean> {
-    await this.UserRepository.save(data);
+    const dataChunk = _.chunk(data, 1000);
+
+    for (const batch of dataChunk) {
+      await this.UserRepository.insert(batch);
+    }
 
     return true;
   }
 
-  async bulkDelete(data: IUser[]): Promise<boolean> {
-    await this.UserRepository.save(data);
-
+  async bulkDelete(ids: number[]): Promise<boolean> {
+    await this.UserRepository.delete(ids);
     return true;
   }
 
-  async bulkEnabled(data: IUser[]): Promise<boolean> {
-    await this.UserRepository.save(data);
-
+  async bulkEnabled(ids: number[]): Promise<boolean> {
+    await this.UserRepository.update(ids, { enabled: constants.SI });
     return true;
   }
 
-  async bulkDisabled(data: IUser[]): Promise<boolean> {
-    await this.UserRepository.save(data);
+  async bulkDisabled(ids: number[]): Promise<boolean> {
+    await this.UserRepository.update(ids, { enabled: constants.NO });
+    return true;
+  }
 
+  async clear() {
+    await this.UserRepository.clear();
     return true;
   }
 

@@ -10,7 +10,7 @@ import {
 import bcrypt from "bcryptjs";
 
 @Entity("users")
-export class UserModel {
+export default class UserModel {
 
     @PrimaryGeneratedColumn()
     id: number;

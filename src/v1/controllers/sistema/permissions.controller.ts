@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import httpStatus from "http-status";
 import ApiError from "../../../includes/library/api.error.library";
-import { IPermissionFilter, IController } from "../../../types";
+import { IPermissionFilter, IController, IPaginationOptions } from "../../../types";
 import PermissionService from "../../services/modules/permission.service";
 import ModuleService from "../../services/modules/module.service";
 import _ from "lodash"
@@ -29,7 +29,9 @@ class PermisionController implements IController {
             throw new ApiError(httpStatus.BAD_REQUEST, global.polyglot.t("MODULE_ERROR_DISABLED"));
 
 
+        //@ts-ignore
         const filter: IPermissionFilter = _.pick(req.query, ["name", "slug", "guard", "enabled"]) as IPermissionFilter;
+
         const options: IPaginationOptions = {
             search: req.query.search,
             sortBy: req.query.sortBy,

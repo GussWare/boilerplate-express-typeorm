@@ -61,15 +61,13 @@ export default class ModuleService implements ICrudService<IModule> {
 
     // @ts-ignore
     if (await ModuleModel.isModuleSlugTaken(data.slug)) {
-      //@ts-ignore
       throw new ApiError(httpStatus.BAD_REQUEST, global.polyglot.t("MODULE_ERROR_MODULE_SLUG_ALREADY_TAKEN"));
     }
 
     let resource = await this.ModuleRepository.create(data);
 
-    if (resource && data.actions) {
-      //@ts-ignore
-      await this.PermissionService.bulkCreate(resource.id, data.actions);
+    if (resource && data.permissions) {
+      await this.PermissionService.bulkCreate(resource.id, data.permissions);
     }
 
     return resource;
@@ -79,13 +77,11 @@ export default class ModuleService implements ICrudService<IModule> {
     const ModuleDB = await this.findById(id);
 
     if (!ModuleDB) {
-      //@ts-ignore
       throw new ApiError(httpStatus.BAD_REQUEST, global.polyglot.t("MODULE_NOT_FOUND"));
     }
 
     //@ts-ignore
     if (await ModuleModel.isModuleNameTaken(data.name, id)) {
-      //@ts-ignore
       throw new ApiError(httpStatus.BAD_REQUEST, global.polyglot.t("MODULE_ERROR_ModuleNAME_ALREADY_TAKEN"));
     }
 
@@ -99,8 +95,8 @@ export default class ModuleService implements ICrudService<IModule> {
 
     const resource = await this.findById(id);
 
-    if (resource && data.actions) {
-      await this.PermissionService.bulkCreate(id, data.actions);
+    if (resource && data.permissions) {
+      await this.PermissionService.bulkCreate(id, data.permissions);
     }
 
     return resource;
@@ -110,7 +106,6 @@ export default class ModuleService implements ICrudService<IModule> {
     const resource = await this.findById(id);
 
     if (!resource) {
-      //@ts-ignore
       throw new ApiError(httpStatus.BAD_REQUEST, global.polyglot.t("USERS_NOT_FOUND"));
     }
 
@@ -123,7 +118,6 @@ export default class ModuleService implements ICrudService<IModule> {
     const resource = await this.findById(id);
 
     if (!resource) {
-      //@ts-ignore
       throw new ApiError(httpStatus.BAD_REQUEST, global.polyglot.t("USERS_NOT_FOUND"));
     }
 
@@ -136,7 +130,6 @@ export default class ModuleService implements ICrudService<IModule> {
     const resource = await this.findById(id);
 
     if (!resource) {
-      //@ts-ignore
       throw new ApiError(httpStatus.BAD_REQUEST, global.polyglot.t("USERS_NOT_FOUND"));
     }
 
@@ -148,10 +141,30 @@ export default class ModuleService implements ICrudService<IModule> {
   async bulkCreate(data: IModule[]): Promise<boolean> {
     const dataChunk = _.chunk(data, 1000);
 
-    for (const key in dataChunk) {
-      await this.ModuleRepository.insert(dataChunk[key]);
+    for (const data of dataChunk) {
+      await this.ModuleRepository.insert(data);
     }
 
+    return true;
+  }
+
+  async bulkDelete(ids: number[]): Promise<boolean> {
+    await this.ModuleRepository.delete(ids);
+    return true;
+  }
+
+  async bulkEnabled(ids: number[]): Promise<boolean> {
+    await this.ModuleRepository.update(ids, { enabled: constants.SI });
+    return true;
+  }
+
+  async bulkDisabled(ids: number[]): Promise<boolean> {
+    await this.ModuleRepository.update(ids, { enabled: constants.NO });
+    return true;
+  }
+
+  async clear(): Promise<boolean> {
+    await this.ModuleRepository.clear();
     return true;
   }
 }

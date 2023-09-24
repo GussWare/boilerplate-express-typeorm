@@ -2,14 +2,19 @@ import { IFaker, IUser } from "../../types";
 //@ts-ignore
 import faker from "faker";
 import _ from "lodash";
-import userService from "../services/users/user.service";
-import UserModel from "../models/sistema/user.model";
+import UserService from "../services/users/user.service";
 
 class UserFaker implements IFaker {
 
+    private UserService = undefined;
+
+    constructor() {
+        this.UserService = new UserService();
+    }
+
     async make(): Promise<void> {
-        await UserModel.deleteMany();
-        
+        await this.UserService.clear();
+
         let adminData: IUser = {
             name: "Gustavo",
             surname: "Avila Medina",
@@ -21,7 +26,7 @@ class UserFaker implements IFaker {
             enabled: true
         };
 
-        await userService.create(adminData);
+        await this.UserService.create(adminData);
 
         const dataInsert = [];
 
@@ -44,7 +49,7 @@ class UserFaker implements IFaker {
             dataInsert.push(data);
         }
 
-        await userService.bulk(dataInsert);
+        await this.UserService.bulkCreate(dataInsert);
     }
 }
 

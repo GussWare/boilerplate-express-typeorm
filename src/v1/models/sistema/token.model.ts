@@ -8,7 +8,7 @@ import {
     JoinColumn
 } from "typeorm";
 import * as constants from "../../../includes/config/constants"
-import { UserModel } from "./user.model";
+import UserModel from "./user.model";
 
 @Entity("tokens")
 export class TokenModel {

@@ -2,20 +2,26 @@ import { IFaker, IModule } from "../../types";
 //@ts-ignore
 import faker from "faker";
 import _ from "lodash";
-import moduleService from "../services/modules/module.service";
+import ModuleService from "../services/modules/module.service";
 import * as constants from "../../includes/config/constants";
-import ModuleModel from "../models/sistema/module.model";
 
 class ModuleFaker implements IFaker {
 
+    private ModuleService = undefined;
+
+    constructor() {
+        this.ModuleService = new ModuleService();
+    }
+
     async make(): Promise<void> {
+
         let data: IModule[] = [
             {
                 name: "Configuración",
                 slug: "configuration",
                 guard: constants.GUARD_TYPE_API,
                 description: "Listado de Configuración",
-                actions: [
+                permissions: [
                     {
                         name: "Paginación",
                         slug: "configuration_paginate",
@@ -41,7 +47,7 @@ class ModuleFaker implements IFaker {
                 slug: "bitacora",
                 guard: constants.GUARD_TYPE_API,
                 description: "Listado de la Bitacora del Sistema",
-                actions: [
+                permissions: [
                     {
                         name: "Paginación",
                         slug: "bitacora_paginate",
@@ -55,7 +61,7 @@ class ModuleFaker implements IFaker {
                 slug: "modules",
                 guard: constants.GUARD_TYPE_API,
                 description: "Listado de la Bitacora del Sistema",
-                actions: [
+                permissions: [
                     {
                         name: "Paginación de Modulos",
                         slug: "modules_paginate",
@@ -96,11 +102,7 @@ class ModuleFaker implements IFaker {
             }
         ];
 
-        await ModuleModel.deleteMany();
-
-        for (const iterator of data) {
-            await moduleService.create(iterator);
-        }
+        await this.ModuleService.bulkCreate(data);
     }
 }
 

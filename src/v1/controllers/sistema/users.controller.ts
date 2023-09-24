@@ -42,7 +42,6 @@ class UserController implements IController {
     const user = await this.UserService.findById(id);
 
     if (!user) {
-      //@ts-ignore
       throw new ApiError(HttpStatus.NOT_FOUND, global.polyglot.t("USERS_ERROR_USER_NOT_FOUND"));
     }
 

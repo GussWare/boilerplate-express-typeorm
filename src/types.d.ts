@@ -6,6 +6,14 @@ declare namespace NodeJS {
 	}
 }
 
+export interface IPaginationOptions {
+	sortBy?: string;
+	limit: number;
+	page: number;
+	populate?: string;
+	search?: string;
+}
+
 export interface IPaginationResponse {
 	results: any[],
 	page: number,
@@ -76,7 +84,7 @@ export interface IModule {
 	slug?: string;
 	guard?: string;
 	description?: string;
-	actions?: IPermission[];
+	permissions?: IPermission[];
 }
 
 export interface IModuleFilter {
@@ -119,15 +127,15 @@ export interface IRoleFilter {
 
 export interface IBitacora {
 	id?: number;
-	user?: number; // Cambiado a number
+	user?: number;
 	module?: string;
-	action?: string;
+	permission?: string;
 	description?: string;
 	date?: Date;
 }
 
 export interface IBitacoraFilter {
-	user?: number; // Cambiado a number
+	user?: number;
 	module?: string;
 	action?: string;
 	startDate?: Date;
@@ -154,9 +162,10 @@ export interface ICrudService<T> {
 	enabled?(id: number): Promise<boolean>;
 	disabled?(id: number): Promise<boolean>;
 	bulkCreate?(data: T[]): Promise<boolean>;
-	bulkDelete?(data: T[]): Promise<boolean>;
-	bulkEnabled?(data: T[]): Promise<boolean>;
-	bulkDisabled?(data: T[]): Promise<boolean>;
+	bulkDelete?(ids: number[]): Promise<boolean>;
+	bulkEnabled?(ids: number[]): Promise<boolean>;
+	bulkDisabled?(ids: number[]): Promise<boolean>;
+	clear?(): Promise<boolean>;
 }
 
 export interface ITokenPayload {
@@ -194,13 +203,13 @@ export interface ILanguage {
 	name?: string;
 	slug?: string;
 	description?: string;
-	default?: boolean; // Cambiado a boolean
-	enabled?: boolean; // Cambiado a boolean
+	default?: boolean;
+	enabled?: boolean;
 }
 
 export interface ILanguageFilter {
 	name?: string;
 	slug?: string;
-	default?: boolean; // Cambiado a boolean
-	enabled?: boolean; // Cambiado a boolean
+	default?: boolean;
+	enabled?: boolean;
 }

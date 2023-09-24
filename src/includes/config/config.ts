@@ -14,6 +14,7 @@ const envVarsSchema = Joi.object()
     PORT: Joi.number().default(3000),
 
     DATABASE_TYPE: Joi.string().required().description('Database Type'),
+    DATABASE_NAME: Joi.string().required().description('Database Name'),
     DATABASE_HOST: Joi.string().required().description('Database Host'),
     DATABASE_USER: Joi.string().required().description('Database USER'),
     DATABASE_PASS: Joi.string().required().description('Database PASS'),
@@ -61,10 +62,10 @@ export default {
   database: {
     type: envVars.DATABASE_TYPE,
     host: envVars.DATABASE_HOST,
-    user: envVars.DATABASE_USER,
-    pass: envVars.DATABASE_PASS,
     port: envVars.DATABASE_PORT,
-
+    username: envVars.DATABASE_USER,
+    password: envVars.DATABASE_PASS,
+    database: envVars.DATABASE_NAME
   },
   jwt: {
     secret: envVars.JWT_SECRET,
